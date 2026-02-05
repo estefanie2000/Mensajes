@@ -1,0 +1,55 @@
+import pandas as pd
+import pywhatkit
+import time
+import os
+
+RUTA_EXCEL = r"C:ruta"
+CARPETA_ARCHIVOS = r"C:rutas\6"
+
+TIEMPO_ESPERA = 30
+
+def enviar_mensajes():
+    try:
+        df = pd.read_excel(RUTA_EXCEL)
+        df.columns = df.columns.str.strip().str.lower()
+
+        print("Excel cargado correctamente")
+        print("Columnas detectadas:", df.columns.tolist())
+
+        for index, fila in df.iterrows():
+            try:
+                numero = str(fila["telefono"]).strip()
+                nombre = str(fila["nombres"]).strip()  
+                no_archivo = str(index + 1)  
+
+                if not numero.startswith("+"):
+                    numero = "+52" + numero
+
+                mensaje = f"Estimada {nombre}, debe acudir del 7 a 10 de febrero a entregar los documentos que le hacen falta como el pasaporte, INE, visa, CURP, comprobante de domicilio, etc."
+
+                print(f"\nEnviando mensaje a: {nombre} - {numero}")
+
+                pywhatkit.sendwhatmsg_instantly(numero, mensaje, wait_time=10, tab_close=False)
+                time.sleep(5)
+
+                archivo = os.path.join(CARPETA_ARCHIVOS, f"{no_archivo}.pdf")
+
+                if os.path.exists(archivo):
+                    pywhatkit.sendwhats_image(numero, archivo, "Documento adjunto", wait_time=10, tab_close=False)
+                    print(f"Archivo enviado: {archivo}")
+                else:
+                    print(f"Archivo no encontrado: {archivo}")
+
+                print(f"Esperando {TIEMPO_ESPERA} segundos...")
+                time.sleep(TIEMPO_ESPERA)
+
+            except Exception as e:
+                print(f"Error con el registro {index}: {e}")
+
+        print("\nProceso terminado")
+
+    except Exception as e:
+        print("Error al leer el Excel:", e)
+
+if __name__ == "__main__":
+    enviar_mensajes()
